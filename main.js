@@ -1,15 +1,15 @@
-const args = process.argv.slice(2)
+console.log(process.argv)
+
+const { crawlPage } = require('./crawl.js')
 
 function main(args) {
-    const numArgs = args.length
-    if (numArgs < 1) {
-        throw console.error('include base url as command line argument')
-    }
-    if (numArgs > 1) {
-        throw console.error('include ONLY one base url as command line argument')
+    if (args.length !== 1) {
+        console.error('One url as command line argument')
+        process.exit(1)
     }
     console.log(`${args[0]} is our baseURL. Commencing crawl.`)
     
+    crawlPage(args[0])
 }
 
-main(args)
+main(process.argv.slice(2))

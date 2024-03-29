@@ -55,14 +55,34 @@ function getURLsFromHTML(htmlBody, baseURL) {
     return linkList
 }
 
-function crawlPage(baseURL) {
-    // use fetch to fetch the webpage of current url
-    // if https status code is 400+ error, print error and return
-    // if response content-type header is not text/html, print error and return
-    // print html body as string
+async function crawlPage(baseURL) {
+    try {
+        // use fetch the fetch webpage
+        const response = await fetch(baseURL)
+        
+        // check for 400+ status codes
+        if (response.status >= 400 && response.status < 600) {
+            console.error('400+ error:' + response.status)
+            return
+        }
+
+        // check to make sure content-type is correct
+        const contentType = response.headers.get('content-type')
+        if (!contentType || !contentType.includes('text/html')) {
+            console.error(`Expected type: text/html \nReceived type: ${contentType}`) 
+            return
+        }
+
+        // if all is good, log html/text as string
+        const htmlContent = await response.text()
+        console.log(htmlContent)
+    } catch (error) {
+        console.error('Error fetching webpage:', error)
+    }
 }
 
 module.exports = {
     normalizeURL,
-    getURLsFromHTML
+    getURLsFromHTML,
+    crawlPage
 }
