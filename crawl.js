@@ -21,8 +21,6 @@ function normalizeURL(url) {
 }
 
 function getURLsFromHTML(htmlBody, baseURL) {
-    //handle errors
-    
     //create list that will be returned
     let linkList = []
 
@@ -55,10 +53,31 @@ function getURLsFromHTML(htmlBody, baseURL) {
     return linkList
 }
 
-async function crawlPage(baseURL) {
+async function crawlPage(baseURL, currentURL, pages) {
+    // if we go to a different website, return
+    if (!currentURL.includes(baseURL)) {
+        return
+    }
+
+    // normalize the current URL
+    const normalizedURL = normalizeURL(currentURL)
+
+    // if normalized URL is in pages, increment value of key and return
+    if (normalizedURL in pages) {
+        pages[normalizedURL] += 1
+        return pages
+    } else {
+        pages[normalizedURL] = 1
+    }
+
+    // log which website is being crawled for user
+    console.log(`${currentURL} is being crawled`)
+
+    // try/catch fetch request to current URL and log request
+    let htmlContent = ''
     try {
         // use fetch the fetch webpage
-        const response = await fetch(baseURL)
+        const response = await fetch(currentURL)
         
         // check for 400+ status codes
         if (response.status >= 400 && response.status < 600) {
@@ -73,12 +92,22 @@ async function crawlPage(baseURL) {
             return
         }
 
-        // if all is good, log html/text as string
-        const htmlContent = await response.text()
-        console.log(htmlContent)
+        // if all is good, declare change htmlContent to text string
+        htmlContent = await response.text()
     } catch (error) {
         console.error('Error fetching webpage:', error)
     }
+
+    // search for urls from html body using previously made function
+    const searchedURLs = getURLsFromHTML(htmlContent, baseURL)
+
+    // recursively call function with each new link found and update pages with their urls
+    for (const element of searchedURLs) {
+        await crawlPage(baseURL, element, pages)
+    }
+
+    // last action: return pages
+    return pages
 }
 
 module.exports = {
